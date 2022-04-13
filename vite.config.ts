@@ -35,6 +35,6 @@ export default defineConfig({
   },
   plugins: [react(), crx({ manifest })],
   optimizeDeps: {
-    entries: ["src/devtools.html", "src/panel.html"],
+    entries: ["src/*.html"],
   },
 });
