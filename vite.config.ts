@@ -2,7 +2,7 @@ import react from "@vitejs/plugin-react";
 import { resolve } from "path";
 import { crx, defineManifest } from "rollup-plugin-chrome-extension";
 import { defineConfig } from "vite";
-import { version } from "./package.json";
+import pkg from "./package.json";
 
 /**
  * Three ways to declare the manifest:
@@ -13,7 +13,7 @@ import { version } from "./package.json";
 const manifest = defineManifest({
   manifest_version: 3,
   name: "CRX React Devtools",
-  version,
+  version: pkg.version,
   content_scripts: [
     {
       js: ["src/content-script.ts"],
