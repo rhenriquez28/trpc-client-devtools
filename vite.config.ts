@@ -1,6 +1,6 @@
 import react from "@vitejs/plugin-react";
 import { resolve } from "path";
-import { crx, defineManifest } from "rollup-plugin-chrome-extension";
+import { crx, defineManifest } from "@crxjs/vite-plugin";
 import { defineConfig } from "vite";
 import pkg from "./package.json";
 
