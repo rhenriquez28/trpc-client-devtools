@@ -20,7 +20,6 @@ chrome.runtime.onMessage.addListener((message, sender) => {
  * agent <- content-script.js <- **background.js** <- dev tools
  */
 chrome.runtime.onConnect.addListener((port: chrome.runtime.Port) => {
-  console.log("a port did something");
   let tabId: any;
   port.onMessage.addListener((message) => {
     if (message.name === "init") {
