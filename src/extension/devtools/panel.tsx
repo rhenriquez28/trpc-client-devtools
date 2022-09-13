@@ -1,9 +1,7 @@
 import React from "react";
 import ReactDOM from "react-dom";
+import App from "../../app/PanelApp";
 import "./panel.css";
-import App from "./PanelApp";
-
-console.log("panel abc");
 
 ReactDOM.render(
   <React.StrictMode>

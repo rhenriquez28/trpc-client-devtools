@@ -1,9 +1,7 @@
-console.log("devtools");
-
 chrome.devtools.panels.create(
-  "React Counter",
+  "tRPC",
   "src/panel-icon-16.png",
-  "src/panel.html",
+  "src/extension/devtools/panel.html",
   (panel) => {
     if (chrome.runtime.lastError) console.error(chrome.runtime.lastError);
     console.log("panel", panel);
