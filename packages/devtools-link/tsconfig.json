@@ -8,7 +8,7 @@
     "rootDir": "./",
     "strict": true,
     "esModuleInterop": true,
-    "isolatedModules": true,
-    "include": ["src"]
-  }
+    "isolatedModules": true
+  },
+  "include": ["src"]
 }
