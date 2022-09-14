@@ -15,9 +15,11 @@ type DevtoolsMessage<TRouter extends AnyRouter> = {
       });
 };
 
-export function devtoolsLink<TRouter extends AnyRouter = AnyRouter>(
-  enabled = true
-): TRPCLink<TRouter> {
+export function devtoolsLink<TRouter extends AnyRouter = AnyRouter>({
+  enabled,
+}: {
+  enabled: boolean;
+}): TRPCLink<TRouter> {
   return () => {
     function sendMessageToDevtools(
       payload: DevtoolsMessage<TRouter>["payload"]

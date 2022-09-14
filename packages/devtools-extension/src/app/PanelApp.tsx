@@ -111,19 +111,27 @@ function App() {
     };
   }, [operations]);
 
+  const onTabChange = (selectedTab: NavTabType) => {
+    setSelectedOperation(undefined);
+    setCurrentTab(selectedTab);
+  };
+
   return (
     <div className="text-white bg-neutral-900 h-full flex flex-col md:flex-row">
       <div className="min-w-[306px]">
         <Nav
           queriesCount={filteredOperations.queries.length}
           mutationsCount={filteredOperations.mutations.length}
-          onTabChange={(selectedTab) => setCurrentTab(selectedTab)}
+          onTabChange={onTabChange}
         />
         <div className="mt-1 h-72 overflow-y-auto">
           {filteredOperations[currentTab].map((operation) => {
             return (
               <div
-                className="p-4 hover:bg-neutral-700"
+                key={operation.id}
+                className={`p-4 hover:bg-neutral-700 ${
+                  selectedOperation?.id === operation.id ? "bg-neutral-600" : ""
+                }`}
                 onClick={() => setSelectedOperation(operation)}
               >
                 {operation.path}

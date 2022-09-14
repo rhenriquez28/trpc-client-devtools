@@ -14,6 +14,13 @@ const manifest = defineManifest({
   manifest_version: 3,
   name: "tRPC Client Devtools",
   version: pkg.version,
+  icons: {
+    "16": "src/extension/assets/trpc-logo-16.png",
+    "32": "src/extension/assets/trpc-logo-32.png",
+    "48": "src/extension/assets/trpc-logo-48.png",
+    "128": "src/extension/assets/trpc-logo-128.png",
+  },
+  description: "",
   background: {
     service_worker: "src/extension/background.ts",
     type: "module",
