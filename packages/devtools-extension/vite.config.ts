@@ -12,13 +12,12 @@ import pkg from "./package.json";
  */
 const manifest = defineManifest({
   manifest_version: 3,
-  name: "tRPC Devtools",
+  name: "tRPC Client Devtools",
   version: pkg.version,
   background: {
     service_worker: "src/extension/background.ts",
     type: "module",
   },
-  permissions: ["activeTab", "storage"],
   content_scripts: [
     {
       js: ["src/extension/content-script.ts"],

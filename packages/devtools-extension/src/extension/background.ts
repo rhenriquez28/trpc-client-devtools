@@ -23,8 +23,6 @@ chrome.runtime.onConnect.addListener((port: chrome.runtime.Port) => {
   let tabId: any;
   port.onMessage.addListener((message) => {
     if (message.name === "init") {
-      console.log("init port", message);
-      // set in devtools.ts
       if (!tabId) {
         // this is a first message from devtools so let's set the tabId-port mapping
         tabId = message.tabId;

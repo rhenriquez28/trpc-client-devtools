@@ -5,6 +5,7 @@ import { JSONTree } from "react-json-tree";
 import superjson from "superjson";
 import Nav from "./components/Nav";
 import "./PanelApp.css";
+import { NavTabType } from "./types";
 
 type DevtoolsMessage = {
   source: "trpcDevtoolsLink";
@@ -17,6 +18,10 @@ type TRPCOperation = Operation & {
    */
   result?: OperationResponse<AnyRouter>;
   elapsedMs?: number;
+};
+
+type FilteredOperations = {
+  [TKey in NavTabType]: TRPCOperation[];
 };
 
 const OperationViewer: React.FC<{
@@ -62,19 +67,22 @@ const OperationViewer: React.FC<{
 
 function App() {
   const [operations, setOperations] = useState<TRPCOperation[]>([]);
-  const [selectedQuery, setSelectedQuery] = useState<TRPCOperation | undefined>(
-    undefined
-  );
-
-  const queryOperations = operations.filter((operation) => {
-    return operation.type === "query";
-  });
+  const [selectedOperation, setSelectedOperation] = useState<
+    TRPCOperation | undefined
+  >(undefined);
+  const [currentTab, setCurrentTab] = useState<NavTabType>("queries");
+  const filterOperationByType = (operationType: TRPCOperation["type"]) =>
+    operations.filter((operation) => operation.type === operationType);
+  const filteredOperations: FilteredOperations = {
+    queries: filterOperationByType("query"),
+    mutations: filterOperationByType("mutation"),
+  };
 
   const messageListener = (message: DevtoolsMessage) => {
     const payload = superjson.parse<TRPCOperation>(message.payload);
-    const operationIndex = operations.findIndex((operation) => {
-      return operation.id === payload.id;
-    });
+    const operationIndex = operations.findIndex(
+      (operation) => operation.id === payload.id
+    );
     if (operationIndex !== -1) {
       operations[operationIndex] = {
         ...operations[operationIndex],
@@ -95,7 +103,7 @@ function App() {
     port.onMessage.addListener(messageListener);
     chrome.devtools.panels.create(
       "tRPC",
-      "src/panel-icon-16.png",
+      "",
       "src/extension/devtools/panel.html"
     );
     return () => {
@@ -106,26 +114,30 @@ function App() {
   return (
     <div className="text-white bg-neutral-900 h-full flex flex-col md:flex-row">
       <div className="min-w-[306px]">
-        <Nav queriesCount={queryOperations.length} mutationsCount={0} />
+        <Nav
+          queriesCount={filteredOperations.queries.length}
+          mutationsCount={filteredOperations.mutations.length}
+          onTabChange={(selectedTab) => setCurrentTab(selectedTab)}
+        />
         <div className="mt-1 h-72 overflow-y-auto">
-          {queryOperations.map((query) => {
+          {filteredOperations[currentTab].map((operation) => {
             return (
               <div
                 className="p-4 hover:bg-neutral-700"
-                onClick={() => setSelectedQuery(query)}
+                onClick={() => setSelectedOperation(operation)}
               >
-                {query.path}
+                {operation.path}
               </div>
             );
           })}
         </div>
       </div>
       <div className="flex flex-col md:flex-row gap-3 h-full w-full bg-[#1f1e1f] px-4 py-2">
-        <OperationViewer title="Input" jsonData={selectedQuery?.input} />
+        <OperationViewer title="Input" jsonData={selectedOperation?.input} />
         <OperationViewer
           title="Result"
-          jsonData={selectedQuery?.result}
-          elapsedTime={selectedQuery?.elapsedMs}
+          jsonData={selectedOperation?.result}
+          elapsedTime={selectedOperation?.elapsedMs}
         />
       </div>
     </div>

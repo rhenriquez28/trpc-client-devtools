@@ -19,7 +19,6 @@ window.addEventListener("message", (event) => {
   }
 
   if (chrome.runtime && !!chrome.runtime.getManifest()) {
-    console.log("in content-script", message);
     chrome.runtime.sendMessage(message);
   } else {
     console.log(
