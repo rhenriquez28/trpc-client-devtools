@@ -1,18 +1,25 @@
 {
   "name": "trpc-client-devtools-link",
   "version": "0.0.1",
-  "description": "A neat tRPC link to connect to the unofficial tRPC Devtools browser extension",
+  "description": "A neat tRPC link to connect to the unofficial tRPC Client Devtools browser extension",
   "main": "dist/trpc-client-devtools-link.cjs.js",
+  "types": "dist/trpc-client-devtools-link.cjs.d.ts",
   "files": [
     "/dist"
   ],
   "module": "dist/trpc-client-devtools-link.esm.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/rhenriquez28/trpc-client-devtools"
+  },
   "scripts": {
     "build": "preconstruct build"
   },
   "keywords": [
     "trpc",
-    "typescript"
+    "typescript",
+    "devtools",
+    "link"
   ],
   "author": {
     "name": "Roy Henriquez",
