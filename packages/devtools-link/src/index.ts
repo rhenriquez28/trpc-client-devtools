@@ -15,11 +15,12 @@ type DevtoolsMessage<TRouter extends AnyRouter> = {
       });
 };
 
-export function devtoolsLink<TRouter extends AnyRouter = AnyRouter>({
-  enabled,
-}: {
-  enabled: boolean;
-}): TRPCLink<TRouter> {
+export function devtoolsLink<TRouter extends AnyRouter = AnyRouter>(
+  opts: {
+    enabled?: boolean;
+  } = {}
+): TRPCLink<TRouter> {
+  const { enabled = true } = opts;
   return () => {
     function sendMessageToDevtools(
       payload: DevtoolsMessage<TRouter>["payload"]
@@ -30,17 +31,15 @@ export function devtoolsLink<TRouter extends AnyRouter = AnyRouter>({
       );
     }
     return ({ op, next, prev }) => {
-      if (enabled) {
-        // ->
-        sendMessageToDevtools(op);
-        const requestStartTime = Date.now();
-        next(op, (result) => {
-          const elapsedMs = Date.now() - requestStartTime;
-          sendMessageToDevtools({ ...op, result, elapsedMs });
-          // <-
-          prev(result);
-        });
-      }
+      // ->
+      enabled && sendMessageToDevtools(op);
+      const requestStartTime = Date.now();
+      next(op, (result) => {
+        const elapsedMs = Date.now() - requestStartTime;
+        enabled && sendMessageToDevtools({ ...op, result, elapsedMs });
+        // <-
+        prev(result);
+      });
     };
   };
 }
