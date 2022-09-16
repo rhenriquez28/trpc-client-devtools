@@ -2,7 +2,7 @@
 
 > A neat link to use the tRPC Client Devtools Chrome extension with your tRPC app
 
-This link lets your app communicate with the tRPC Client Devtools Chrome extension, which you can [download here.]()
+This link lets your app communicate with the tRPC Client Devtools Chrome extension, which you can [download here.](https://chrome.google.com/webstore/detail/trpc-client-devtools/ocolkjnalnkdaclepjmkigefcgngkadb?hl=en&authuser=1)
 
 ## Installation
 
