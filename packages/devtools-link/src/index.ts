@@ -21,14 +21,21 @@ export function devtoolsLink<TRouter extends AnyRouter = AnyRouter>(
   } = {}
 ): TRPCLink<TRouter> {
   const { enabled = true } = opts;
+
+  if (enabled && typeof window === "object") {
+    (window as any).__TRPC_CLIENT_HOOK__ = true;
+  }
+
   return () => {
     function sendMessageToDevtools(
       payload: DevtoolsMessage<TRouter>["payload"]
     ) {
-      window.postMessage(
-        { source: "trpcDevtoolsLink", payload: superjson.stringify(payload) },
-        "*"
-      );
+      if (typeof window === "object") {
+        window.postMessage(
+          { source: "trpcDevtoolsLink", payload: superjson.stringify(payload) },
+          "*"
+        );
+      }
     }
     return ({ op, next, prev }) => {
       // ->

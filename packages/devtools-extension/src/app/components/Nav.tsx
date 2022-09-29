@@ -1,6 +1,6 @@
 import { useState } from "react";
-import trpcLogo from "../trpc-logo.svg";
-import { NavTabType } from "../types";
+import trpcLogo from "../assets/trpc-logo.svg";
+import { OperationType } from "../types";
 import "./Nav.css";
 
 type NavButtonProps = {
@@ -11,7 +11,8 @@ type NavButtonProps = {
 export type NavProps = {
   queriesCount: number;
   mutationsCount: number;
-  onTabChange: (selectedTab: NavTabType) => void;
+  subscriptionsCount: number;
+  onTabChange: (selectedTab: OperationType) => void;
 };
 
 const NavButton: React.FC<NavButtonProps> = ({
@@ -32,10 +33,11 @@ const NavButton: React.FC<NavButtonProps> = ({
 const Nav: React.FC<NavProps> = ({
   queriesCount,
   mutationsCount,
+  subscriptionsCount,
   onTabChange,
 }) => {
-  const [selectedTab, setSelectedTab] = useState<NavTabType>("queries");
-  const onNavButtonClick = (selection: NavTabType) => {
+  const [selectedTab, setSelectedTab] = useState<OperationType>("query");
+  const onNavButtonClick = (selection: OperationType) => {
     setSelectedTab(selection);
     onTabChange(selection);
   };
@@ -45,18 +47,26 @@ const Nav: React.FC<NavProps> = ({
       <ul className="flex items-center mx-1 list-none">
         <li>
           <NavButton
-            isSelected={selectedTab === "queries"}
-            onClick={() => onNavButtonClick("queries")}
+            isSelected={selectedTab === "query"}
+            onClick={() => onNavButtonClick("query")}
           >
             Queries ({queriesCount})
           </NavButton>
         </li>
         <li>
           <NavButton
-            isSelected={selectedTab === "mutations"}
-            onClick={() => onNavButtonClick("mutations")}
+            isSelected={selectedTab === "mutation"}
+            onClick={() => onNavButtonClick("mutation")}
           >
             Mutations ({mutationsCount})
+          </NavButton>
+        </li>
+        <li>
+          <NavButton
+            isSelected={selectedTab === "subscription"}
+            onClick={() => onNavButtonClick("subscription")}
+          >
+            Subscriptions ({subscriptionsCount})
           </NavButton>
         </li>
       </ul>

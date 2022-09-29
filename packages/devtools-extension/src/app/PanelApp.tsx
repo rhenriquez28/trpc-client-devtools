@@ -1,16 +1,122 @@
 import type { Operation, OperationResponse } from "@trpc/client";
 import type { AnyRouter } from "@trpc/server";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { JSONTree } from "react-json-tree";
 import superjson from "superjson";
+import {
+  ContentScriptMessage,
+  DevtoolsPanelMessage,
+  LinkMessage,
+} from "../types";
 import Nav from "./components/Nav";
 import "./PanelApp.css";
-import { NavTabType } from "./types";
+import { OperationType } from "./types";
 
-type DevtoolsMessage = {
-  source: "trpcDevtoolsLink";
-  payload: string;
-};
+function App() {
+  const [operations, setOperations] = useState<Operations>({
+    query: [],
+    mutation: [],
+    subscription: [],
+  });
+  const [selectedOperation, setSelectedOperation] = useState<
+    TRPCOperation | undefined
+  >(undefined);
+  const [currentTab, setCurrentTab] = useState<OperationType>("query");
+  const port = useRef(chrome.runtime.connect({ name: "panel" }));
+
+  const handleLinkMessage = (message: LinkMessage) => {
+    const payload = superjson.parse<TRPCOperation>(message.payload);
+    const operationTypeList = operations[payload.type];
+    const operationIndex = operationTypeList.findIndex(
+      (operation) => operation.id === payload.id
+    );
+    if (operationIndex !== -1) {
+      operationTypeList[operationIndex] = {
+        ...operationTypeList,
+        ...payload,
+      };
+    } else {
+      operationTypeList.push(payload);
+    }
+    setOperations({ ...operations });
+  };
+
+  const handleContentScriptMessage = (message: ContentScriptMessage) => {
+    if (message.message === "create-devtools-panel") {
+      chrome.devtools.panels.create(
+        "tRPC",
+        "",
+        "src/extension/devtools/panel.html"
+      );
+    }
+  };
+
+  const messageListener = (message: LinkMessage | ContentScriptMessage) => {
+    if (message.source === "trpcDevtoolsLink") {
+      handleLinkMessage(message);
+    }
+    if (message.source === "contentScript") {
+      handleContentScriptMessage(message);
+    }
+  };
+
+  useEffect(() => {
+    port.current.postMessage({
+      source: "devtoolsPanel",
+      message: "set-tab-id",
+      payload: { tabId: chrome.devtools.inspectedWindow.tabId },
+    } as DevtoolsPanelMessage);
+  }, []);
+
+  usePortMessageListener(port.current, messageListener);
+
+  const onTabChange = (selectedTab: OperationType) => {
+    setSelectedOperation(undefined);
+    setCurrentTab(selectedTab);
+  };
+
+  return (
+    <div className="text-white bg-neutral-900 h-full flex flex-col md:flex-row">
+      <div className="min-w-max">
+        <Nav
+          queriesCount={operations.query.length}
+          mutationsCount={operations.mutation.length}
+          subscriptionsCount={operations.subscription.length}
+          onTabChange={onTabChange}
+        />
+        <div className="mt-1 h-72 overflow-y-auto">
+          {operations[currentTab].map((operation) => {
+            return (
+              <div
+                key={operation.id}
+                className={`p-4 hover:bg-neutral-700 ${
+                  selectedOperation?.id === operation.id ? "bg-neutral-600" : ""
+                }`}
+                onClick={() => setSelectedOperation(operation)}
+              >
+                {operation.path}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+      <div className="flex flex-col md:flex-row gap-3 h-full w-full bg-[#1f1e1f] px-4 py-2">
+        <OperationViewer title="Input" jsonData={selectedOperation?.input} />
+        <OperationViewer
+          title="Result"
+          jsonData={selectedOperation?.result}
+          elapsedTime={selectedOperation?.elapsedMs}
+        />
+      </div>
+    </div>
+  );
+}
+
+export default App;
+
+type PortMessageListener = (
+  message: LinkMessage | ContentScriptMessage
+) => void;
 
 type TRPCOperation = Operation & {
   /**
@@ -20,8 +126,8 @@ type TRPCOperation = Operation & {
   elapsedMs?: number;
 };
 
-type FilteredOperations = {
-  [TKey in NavTabType]: TRPCOperation[];
+type Operations = {
+  [TKey in OperationType]: TRPCOperation[];
 };
 
 const OperationViewer: React.FC<{
@@ -65,91 +171,21 @@ const OperationViewer: React.FC<{
   );
 };
 
-function App() {
-  const [operations, setOperations] = useState<TRPCOperation[]>([]);
-  const [selectedOperation, setSelectedOperation] = useState<
-    TRPCOperation | undefined
-  >(undefined);
-  const [currentTab, setCurrentTab] = useState<NavTabType>("queries");
-  const filterOperationByType = (operationType: TRPCOperation["type"]) =>
-    operations.filter((operation) => operation.type === operationType);
-  const filteredOperations: FilteredOperations = {
-    queries: filterOperationByType("query"),
-    mutations: filterOperationByType("mutation"),
-  };
-
-  const messageListener = (message: DevtoolsMessage) => {
-    const payload = superjson.parse<TRPCOperation>(message.payload);
-    const operationIndex = operations.findIndex(
-      (operation) => operation.id === payload.id
-    );
-    if (operationIndex !== -1) {
-      operations[operationIndex] = {
-        ...operations[operationIndex],
-        ...payload,
-      };
-      setOperations([...operations]);
-    } else {
-      setOperations([...operations, payload]);
-    }
-  };
+const usePortMessageListener = (
+  port: chrome.runtime.Port,
+  callback: PortMessageListener
+) => {
+  const savedCallback = useRef<PortMessageListener>();
 
   useEffect(() => {
-    const port = chrome.runtime.connect({ name: "panel" });
-    port.postMessage({
-      name: "init",
-      tabId: chrome.devtools.inspectedWindow.tabId,
-    });
-    port.onMessage.addListener(messageListener);
-    chrome.devtools.panels.create(
-      "tRPC",
-      "",
-      "src/extension/devtools/panel.html"
-    );
-    return () => {
-      port.onMessage.removeListener(messageListener);
-    };
-  }, [operations]);
+    savedCallback.current = callback;
+  });
 
-  const onTabChange = (selectedTab: NavTabType) => {
-    setSelectedOperation(undefined);
-    setCurrentTab(selectedTab);
-  };
-
-  return (
-    <div className="text-white bg-neutral-900 h-full flex flex-col md:flex-row">
-      <div className="min-w-[306px]">
-        <Nav
-          queriesCount={filteredOperations.queries.length}
-          mutationsCount={filteredOperations.mutations.length}
-          onTabChange={onTabChange}
-        />
-        <div className="mt-1 h-72 overflow-y-auto">
-          {filteredOperations[currentTab].map((operation) => {
-            return (
-              <div
-                key={operation.id}
-                className={`p-4 hover:bg-neutral-700 ${
-                  selectedOperation?.id === operation.id ? "bg-neutral-600" : ""
-                }`}
-                onClick={() => setSelectedOperation(operation)}
-              >
-                {operation.path}
-              </div>
-            );
-          })}
-        </div>
-      </div>
-      <div className="flex flex-col md:flex-row gap-3 h-full w-full bg-[#1f1e1f] px-4 py-2">
-        <OperationViewer title="Input" jsonData={selectedOperation?.input} />
-        <OperationViewer
-          title="Result"
-          jsonData={selectedOperation?.result}
-          elapsedTime={selectedOperation?.elapsedMs}
-        />
-      </div>
-    </div>
-  );
-}
-
-export default App;
+  useEffect(() => {
+    function listener(...args: Parameters<PortMessageListener>) {
+      savedCallback.current!(...args);
+    }
+    port.onMessage.addListener(listener);
+    return () => port.onMessage.removeListener(listener);
+  }, []);
+};
