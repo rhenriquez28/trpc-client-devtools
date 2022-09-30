@@ -6,10 +6,11 @@ An unofficial tRPC Client Devtools extension
 
 # Features
 
-The tRPC Client Chrome Devtools appear as a "tRPC" tab in your Chrome inspector, alongside other tabs like "Elements" and "Console". The devtools currently have 2 main features:
+The tRPC Client Chrome Devtools appear as a "tRPC" tab in your Chrome inspector when tRPC is detected, alongside other tabs like "Elements" and "Console". The devtools currently have 3 main features:
 
 - **Query inspector:** View the input, result and elapsed time of the fired queries.
 - **Mutation inspector:** View the input, result and elapsed time of the fired mutations.
+- **Subscription inspector:** View the input, multiple results and their elapsed time of the subscriptions.
 
 ![tRPC Client Devtools Chrome Extension](./assets/trpc-client-devtools.png)
 
