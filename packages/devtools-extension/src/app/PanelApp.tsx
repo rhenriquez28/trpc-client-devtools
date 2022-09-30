@@ -12,6 +12,8 @@ import Nav from "./components/Nav";
 import "./PanelApp.css";
 import { OperationType } from "./types";
 
+const inspectorBackgroundColor = "bg-[#1f1e1f]";
+
 function App() {
   const [operations, setOperations] = useState<Operations>({
     query: [],
@@ -19,10 +21,43 @@ function App() {
     subscription: [],
   });
   const [selectedOperation, setSelectedOperation] = useState<
-    TRPCOperation | undefined
+    (TRPCOperation | undefined) & (TRPCSubscription | undefined)
   >(undefined);
   const [currentTab, setCurrentTab] = useState<OperationType>("query");
   const port = useRef(chrome.runtime.connect({ name: "panel" }));
+
+  const handleSubscription = (
+    subscriptionList: TRPCSubscription[],
+    payload: TRPCOperation,
+    subscriptionIndex: number
+  ) => {
+    if (subscriptionIndex !== -1) {
+      const subscription = subscriptionList[
+        subscriptionIndex
+      ] as TRPCSubscription;
+      subscription.results = [
+        ...subscriptionList[subscriptionIndex].results!,
+        { result: payload.result, elapsedMs: payload.elapsedMs },
+      ];
+    } else {
+      subscriptionList.push({ ...payload, results: [] });
+    }
+  };
+
+  const handleOperation = (
+    operationList: TRPCOperation[],
+    payload: TRPCOperation,
+    operationIndex: number
+  ) => {
+    if (operationIndex !== -1) {
+      operationList[operationIndex] = {
+        ...operationList[operationIndex],
+        ...payload,
+      };
+    } else {
+      operationList.push(payload);
+    }
+  };
 
   const handleLinkMessage = (message: LinkMessage) => {
     const payload = superjson.parse<TRPCOperation>(message.payload);
@@ -30,13 +65,10 @@ function App() {
     const operationIndex = operationTypeList.findIndex(
       (operation) => operation.id === payload.id
     );
-    if (operationIndex !== -1) {
-      operationTypeList[operationIndex] = {
-        ...operationTypeList,
-        ...payload,
-      };
+    if (payload.type === "subscription") {
+      handleSubscription(operationTypeList, payload, operationIndex);
     } else {
-      operationTypeList.push(payload);
+      handleOperation(operationTypeList, payload, operationIndex);
     }
     setOperations({ ...operations });
   };
@@ -76,15 +108,15 @@ function App() {
   };
 
   return (
-    <div className="text-white bg-neutral-900 h-full flex flex-col md:flex-row">
-      <div className="min-w-max">
+    <div className="text-white bg-neutral-900 h-full grid grid-cols-1 grid-rows-2 md:grid-cols-12 md:grid-rows-1 overflow-hidden">
+      <div className="overflow-hidden flex flex-col flex-grow min-h-0 md:col-start-1 md:col-end-5">
         <Nav
           queriesCount={operations.query.length}
           mutationsCount={operations.mutation.length}
           subscriptionsCount={operations.subscription.length}
           onTabChange={onTabChange}
         />
-        <div className="mt-1 h-72 overflow-y-auto">
+        <div className="mt-1 min-h-0 overflow-y-auto">
           {operations[currentTab].map((operation) => {
             return (
               <div
@@ -100,12 +132,22 @@ function App() {
           })}
         </div>
       </div>
-      <div className="flex flex-col md:flex-row gap-3 h-full w-full bg-[#1f1e1f] px-4 py-2">
+      <div
+        className={`flex flex-col md:flex-row gap-3 h-full w-full ${inspectorBackgroundColor} px-4 py-2 md:col-start-5 md:col-end-13`}
+      >
         <OperationViewer title="Input" jsonData={selectedOperation?.input} />
         <OperationViewer
           title="Result"
-          jsonData={selectedOperation?.result}
-          elapsedTime={selectedOperation?.elapsedMs}
+          jsonData={
+            selectedOperation?.type === "subscription"
+              ? selectedOperation.results
+              : selectedOperation?.result
+          }
+          elapsedTime={
+            selectedOperation?.type === "subscription"
+              ? undefined
+              : selectedOperation?.elapsedMs
+          }
         />
       </div>
     </div>
@@ -118,16 +160,21 @@ type PortMessageListener = (
   message: LinkMessage | ContentScriptMessage
 ) => void;
 
-type TRPCOperation = Operation & {
-  /**
-   * Request result
-   */
+type TRPCOperationResponseInfo = {
   result?: OperationResponse<AnyRouter>;
   elapsedMs?: number;
 };
 
+type TRPCOperation = Operation & TRPCOperationResponseInfo;
+
+type TRPCSubscription = Operation & {
+  results?: TRPCOperationResponseInfo[];
+};
+
 type Operations = {
-  [TKey in OperationType]: TRPCOperation[];
+  [TKey in OperationType]: (TKey extends "subscription"
+    ? TRPCSubscription
+    : TRPCOperation)[];
 };
 
 const OperationViewer: React.FC<{
@@ -157,8 +204,10 @@ const OperationViewer: React.FC<{
   };
 
   return (
-    <div className="w-full overflow-auto">
-      <div className="flex items-center justify-between">
+    <div className="w-full flex flex-col flex-grow min-h-0 relative flex-shrink-0 md:flex-shrink">
+      <div
+        className={`flex items-center justify-between ${inspectorBackgroundColor}`}
+      >
         <div className="text-lg">{title}</div>
         {elapsedTime !== undefined ? (
           <div className="bg-sky-400 text-zinc-100 rounded-sm px-1">
@@ -166,7 +215,9 @@ const OperationViewer: React.FC<{
           </div>
         ) : null}
       </div>
-      <JSONTree data={jsonData} theme={treeTheme} />
+      <div className="min-h-0 overflow-auto">
+        <JSONTree data={jsonData} theme={treeTheme} />
+      </div>
     </div>
   );
 };

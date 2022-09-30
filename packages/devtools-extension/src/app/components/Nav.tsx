@@ -21,7 +21,7 @@ const NavButton: React.FC<NavButtonProps> = ({
   children,
 }) => (
   <button
-    className={`mx-2 py-4 text-sm uppercase text-white hover:cursor-pointer focus:outline-none ${
+    className={`mx-2 py-4 min-w-max text-sm uppercase text-white hover:cursor-pointer focus:outline-none ${
       isSelected ? "selected" : ""
     }`}
     onClick={onClick}
@@ -44,7 +44,7 @@ const Nav: React.FC<NavProps> = ({
   return (
     <nav className="flex items-center h-10">
       <img src={trpcLogo} alt="tRPC logo" className="h-8 w-8 mx-4" />
-      <ul className="flex items-center mx-1 list-none">
+      <ul className="flex items-center mx-1 list-none overflow-x-scroll">
         <li>
           <NavButton
             isSelected={selectedTab === "query"}
