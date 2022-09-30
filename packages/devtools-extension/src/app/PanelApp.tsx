@@ -133,7 +133,7 @@ function App() {
         </div>
       </div>
       <div
-        className={`flex flex-col md:flex-row gap-3 h-full w-full ${inspectorBackgroundColor} px-4 py-2 md:col-start-5 md:col-end-13`}
+        className={`grid grid-rows-2 md:grid-rows-1 md:grid-cols-2 gap-3 h-full w-full ${inspectorBackgroundColor} px-4 py-2 md:col-start-5 md:col-end-13`}
       >
         <OperationViewer title="Input" jsonData={selectedOperation?.input} />
         <OperationViewer
@@ -204,7 +204,7 @@ const OperationViewer: React.FC<{
   };
 
   return (
-    <div className="w-full flex flex-col flex-grow min-h-0 relative flex-shrink-0 md:flex-shrink">
+    <div className="w-full grid grid-rows-[max-content_minmax(0,_1fr)] min-h-0 relative">
       <div
         className={`flex items-center justify-between ${inspectorBackgroundColor}`}
       >
