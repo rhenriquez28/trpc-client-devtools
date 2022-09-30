@@ -1,9 +1,4 @@
-import {
-  ContentScriptMessage,
-  DevtoolsPanelMessage,
-  LinkMessage,
-  PortMessage,
-} from "../types";
+import { DevtoolsPanelMessage, PortMessage } from "../types";
 
 const tabPorts = new Map<number, chrome.runtime.Port>();
 // Receive message from content script and relay to the devTools page for the
