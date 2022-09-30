@@ -2,6 +2,7 @@ import {
   ContentScriptMessage,
   DevtoolsPanelMessage,
   LinkMessage,
+  PortMessage,
 } from "../types";
 
 const tabPorts = new Map<number, chrome.runtime.Port>();
@@ -10,14 +11,12 @@ const tabPorts = new Map<number, chrome.runtime.Port>();
 /*
  * agent -> content-script.js -> **background.js** -> dev tools
  */
-chrome.runtime.onMessage.addListener(
-  (message: LinkMessage | ContentScriptMessage, sender) => {
-    const port = sender?.tab?.id && tabPorts.get(sender.tab.id);
-    if (port) {
-      port.postMessage(message);
-    }
+chrome.runtime.onMessage.addListener((message: PortMessage, sender) => {
+  const port = sender?.tab?.id && tabPorts.get(sender.tab.id);
+  if (port) {
+    port.postMessage(message);
   }
-);
+});
 
 /*
  * agent <- content-script.js <- **background.js** <- dev tools

@@ -7,6 +7,7 @@ import {
   ContentScriptMessage,
   DevtoolsPanelMessage,
   LinkMessage,
+  PortMessage,
 } from "../types";
 import Nav from "./components/Nav";
 import "./PanelApp.css";
@@ -83,7 +84,7 @@ function App() {
     }
   };
 
-  const messageListener = (message: LinkMessage | ContentScriptMessage) => {
+  const messageListener = (message: PortMessage) => {
     if (message.source === "trpcDevtoolsLink") {
       handleLinkMessage(message);
     }
@@ -156,9 +157,7 @@ function App() {
 
 export default App;
 
-type PortMessageListener = (
-  message: LinkMessage | ContentScriptMessage
-) => void;
+type PortMessageListener = (message: PortMessage) => void;
 
 type TRPCOperationResponseInfo = {
   result?: OperationResponse<AnyRouter>;

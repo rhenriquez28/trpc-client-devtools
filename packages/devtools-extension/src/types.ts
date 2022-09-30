@@ -20,3 +20,5 @@ export interface LinkMessage {
   source: "trpcDevtoolsLink";
   payload: string;
 }
+
+export type PortMessage = LinkMessage | ContentScriptMessage;
