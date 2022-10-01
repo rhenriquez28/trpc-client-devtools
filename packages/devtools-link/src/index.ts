@@ -1,5 +1,11 @@
-import type { Operation, OperationResponse, TRPCLink } from "@trpc/client";
+import type {
+  Operation,
+  OperationResultEnvelope,
+  TRPCClientError,
+  TRPCLink,
+} from "@trpc/client";
 import type { AnyRouter } from "@trpc/server";
+import { observable, tap } from "@trpc/server/observable";
 import superjson from "superjson";
 
 type DevtoolsMessage<TRouter extends AnyRouter> = {
@@ -10,7 +16,7 @@ type DevtoolsMessage<TRouter extends AnyRouter> = {
         /**
          * Request result
          */
-        result: OperationResponse<TRouter>;
+        result: OperationResultEnvelope<unknown> | TRPCClientError<TRouter>;
         elapsedMs: number;
       });
 };
@@ -26,26 +32,40 @@ export function devtoolsLink<TRouter extends AnyRouter = AnyRouter>(
     (window as any).__TRPC_CLIENT_HOOK__ = true;
   }
 
-  return () => {
-    function sendMessageToDevtools(
-      payload: DevtoolsMessage<TRouter>["payload"]
-    ) {
-      if (typeof window === "object") {
-        window.postMessage(
-          { source: "trpcDevtoolsLink", payload: superjson.stringify(payload) },
-          "*"
-        );
-      }
+  function sendMessageToDevtools(payload: DevtoolsMessage<TRouter>["payload"]) {
+    if (typeof window === "object") {
+      window.postMessage(
+        { source: "trpcDevtoolsLink", payload: superjson.stringify(payload) },
+        "*"
+      );
     }
-    return ({ op, next, prev }) => {
-      // ->
-      enabled && sendMessageToDevtools(op);
-      const requestStartTime = Date.now();
-      next(op, (result) => {
-        const elapsedMs = Date.now() - requestStartTime;
-        enabled && sendMessageToDevtools({ ...op, result, elapsedMs });
-        // <-
-        prev(result);
+  }
+
+  return () => {
+    return ({ op, next }) => {
+      return observable((observer) => {
+        enabled && sendMessageToDevtools(op);
+        const requestStartTime = Date.now();
+
+        function handleResult(
+          result: OperationResultEnvelope<unknown> | TRPCClientError<TRouter>
+        ) {
+          const elapsedMs = Date.now() - requestStartTime;
+          enabled && sendMessageToDevtools({ ...op, result, elapsedMs });
+        }
+
+        return next(op)
+          .pipe(
+            tap({
+              next(result) {
+                handleResult(result);
+              },
+              error(result) {
+                handleResult(result);
+              },
+            })
+          )
+          .subscribe(observer);
       });
     };
   };
