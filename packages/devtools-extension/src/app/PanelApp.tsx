@@ -1,5 +1,3 @@
-import type { Operation, OperationResponse } from "@trpc/client";
-import type { AnyRouter } from "@trpc/server";
 import { useEffect, useRef, useState } from "react";
 import { JSONTree } from "react-json-tree";
 import superjson from "superjson";
@@ -159,15 +157,22 @@ export default App;
 
 type PortMessageListener = (message: PortMessage) => void;
 
-type TRPCOperationResponseInfo = {
-  result?: OperationResponse<AnyRouter>;
+type OperationResponse = {
+  result?: any;
   elapsedMs?: number;
 };
 
-type TRPCOperation = Operation & TRPCOperationResponseInfo;
+type Operation = {
+  id: number;
+  type: OperationType;
+  input: any;
+  path: string;
+};
+
+type TRPCOperation = Operation & OperationResponse;
 
 type TRPCSubscription = Operation & {
-  results?: TRPCOperationResponseInfo[];
+  results?: OperationResponse[];
 };
 
 type Operations = {
@@ -178,7 +183,7 @@ type Operations = {
 
 const OperationViewer: React.FC<{
   title: string;
-  jsonData: TRPCOperation["input"] | OperationResponse<AnyRouter>;
+  jsonData: TRPCOperation["input"] | OperationResponse;
   elapsedTime?: number;
 }> = ({ title, jsonData, elapsedTime }) => {
   const treeTheme = {
