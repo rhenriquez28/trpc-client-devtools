@@ -16,6 +16,6 @@ The tRPC Client Chrome Devtools appear as a "tRPC" tab in your Chrome inspector 
 
 # Installation
 
-1. Install the [trpc-client-devtools-link](https://www.npmjs.com/package/trpc-client-devtools-link) npm package and add it to your tRPC client config
+1. Install the [trpc-client-devtools-link](https://www.npmjs.com/package/trpc-client-devtools-link) npm package and add it to your tRPC client config (if you're using tRPC v10, install the @next version)
 2. Download and install the tRPC Client Devtools Chrome Extension from the Chrome Web Store
 3. Open the Devtools, navigate to the tRPC panel and inspect away!
