@@ -21,7 +21,7 @@ const manifest = defineManifest({
     "128": "src/extension/assets/trpc-logo-128.png",
   },
   description:
-    "An unofficial tRPC devtools extension to inspect your queries and mutations",
+    "An unofficial tRPC devtools extension to inspect your queries, mutations and subscriptions",
   background: {
     service_worker: "src/extension/background.ts",
     type: "module",
