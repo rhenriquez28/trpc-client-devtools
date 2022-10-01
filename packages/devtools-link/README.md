@@ -28,6 +28,13 @@ links: [
 ...
 ```
 
+## Requirements
+
+Peer dependencies:
+
+- tRPC Client v10 (`@trpc/client@^10.0.0-proxy-beta.10`) must be installed.
+- tRPC Server v10 (`@trpc/server@^10.0.0-proxy-beta.10`) must be installed.
+
 ## Credits
 
 - This link is a modified version of the original `loggerLink` implemented in tRPC. You can check it out [here](https://github.com/trpc/trpc/blob/main/packages/client/src/links/loggerLink.ts).
