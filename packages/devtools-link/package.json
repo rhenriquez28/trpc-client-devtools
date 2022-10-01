@@ -30,12 +30,16 @@
   "devDependencies": {
     "@babel/preset-typescript": "^7.18.6",
     "@preconstruct/cli": "^2.2.1",
+    "@trpc/client": "^9.27.2",
+    "@trpc/server": "^9.27.2",
     "typescript": "^4.8.3"
   },
   "dependencies": {
-    "@trpc/client": "^9.27.2",
-    "@trpc/server": "^9.27.2",
     "superjson": "^1.9.1"
+  },
+  "peerDependencies": {
+    "@trpc/client": "^9.27.2",
+    "@trpc/server": "^9.27.2"
   },
   "preconstruct": {
     "entrypoints": [
