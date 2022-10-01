@@ -13,7 +13,8 @@
     "url": "https://github.com/rhenriquez28/trpc-client-devtools"
   },
   "scripts": {
-    "build": "preconstruct build"
+    "build": "preconstruct build",
+    "publish": "npm run build && npm publish"
   },
   "keywords": [
     "trpc",
