@@ -1,6 +1,6 @@
 {
   "name": "trpc-client-devtools-link",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "A neat tRPC link to connect to the unofficial tRPC Client Devtools browser extension",
   "main": "dist/trpc-client-devtools-link.cjs.js",
   "types": "dist/trpc-client-devtools-link.cjs.d.ts",
