@@ -77,7 +77,7 @@ function App() {
       chrome.devtools.panels.create(
         "tRPC",
         "",
-        "src/extension/devtools/panel.html"
+        "/src/extension/devtools/panel.html"
       );
     }
   };
