@@ -21,13 +21,20 @@ chrome.runtime.onConnect.addListener((port) => {
   port.onMessage.addListener((message: DevtoolsPanelMessage) => {
     if (
       message.source === "devtoolsPanel" &&
-      message.message === "set-tab-id"
+      message.message === "set-tab-id" &&
+      !tabId
     ) {
-      if (!tabId) {
-        // this is a first message from devtools so let's set the tabId-port mapping
-        tabId = message.payload.tabId;
-        tabPorts.set(tabId, port);
-      }
+      // this is a first message from devtools so let's set the tabId-port mapping
+      tabId = message.payload!.tabId;
+      tabPorts.set(tabId, port);
+    }
+
+    if (
+      message.source === "devtoolsPanel" &&
+      message.message === "devtools-panel-created" &&
+      tabPorts.has(tabId)
+    ) {
+      chrome.tabs.sendMessage(tabId, message);
     }
   });
 
