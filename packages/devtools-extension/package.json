@@ -3,9 +3,10 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "build": "tsc && vite build",
+    "build:chrome": "tsc && vite build",
+    "build:firefox": "npm run build:chrome && npm run mv2",
     "dev": "vite",
-    "preview": "vite preview"
+    "mv2": "tsx convert-to-mv2.ts"
   },
   "dependencies": {
     "react": "^17.0.2",
