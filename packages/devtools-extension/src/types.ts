@@ -10,8 +10,8 @@ export interface DetectorMessage {
 
 export interface DevtoolsPanelMessage {
   source: "devtoolsPanel";
-  message: "set-tab-id";
-  payload: {
+  message: "set-tab-id" | "devtools-panel-created";
+  payload?: {
     tabId: number;
   };
 }
