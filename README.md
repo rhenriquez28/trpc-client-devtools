@@ -3,7 +3,7 @@
 # Installation
 
 1. Install the [trpc-client-devtools-link](https://www.npmjs.com/package/trpc-client-devtools-link) npm package and add it to your tRPC client config (if you're using tRPC v10, install the @next version)
-2. Download and install the tRPC Client Devtools Browser Extension for [Chrome](https://chrome.google.com/webstore/detail/trpc-client-devtools/ocolkjnalnkdaclepjmkigefcgngkadb?hl=en&authuser=1) or Firefox (coming soon)
+2. Download and install the tRPC Client Devtools Browser Extension for [Chrome](https://chrome.google.com/webstore/detail/trpc-client-devtools/ocolkjnalnkdaclepjmkigefcgngkadb?hl=en&authuser=1) or [Firefox](https://addons.mozilla.org/en-US/firefox/addon/trpc-client-devtools/)
 3. Open the Devtools, navigate to the tRPC panel and inspect away!
 
 # Features

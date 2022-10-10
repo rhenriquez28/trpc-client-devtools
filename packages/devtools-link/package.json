@@ -1,6 +1,6 @@
 {
   "name": "trpc-client-devtools-link",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "A neat tRPC link to connect to the unofficial tRPC Client Devtools browser extension",
   "main": "dist/trpc-client-devtools-link.cjs.js",
   "types": "dist/trpc-client-devtools-link.cjs.d.ts",
@@ -27,7 +27,7 @@
     "email": "roy.henriquez@gmail.com",
     "url": "https://github.com/rhenriquez28"
   },
-  "license": "ISC",
+  "license": "MIT",
   "devDependencies": {
     "@babel/preset-typescript": "^7.18.6",
     "@preconstruct/cli": "^2.2.1",
