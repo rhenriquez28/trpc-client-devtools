@@ -1,3 +1,4 @@
+import { Resizable } from "re-resizable";
 import { useEffect, useRef, useState } from "react";
 import { JSONTree } from "react-json-tree";
 import superjson from "superjson";
@@ -110,9 +111,29 @@ function App() {
     setCurrentTab(selectedTab);
   };
 
+  const { width } = useWindowDimensions();
+  const isVerticalLayout = width <= mdBreakpoint;
+  const isHorizontalLayout = width > mdBreakpoint;
+
   return (
-    <div className="text-white bg-neutral-900 h-full grid grid-cols-1 grid-rows-2 md:grid-cols-12 md:grid-rows-1 overflow-hidden">
-      <div className="overflow-hidden flex flex-col flex-grow min-h-0 md:col-start-1 md:col-end-5">
+    <div className="text-white bg-neutral-900 h-full flex flex-col md:flex-row overflow-hidden">
+      <Resizable
+        maxHeight={isVerticalLayout ? "75%" : "100%"}
+        minHeight="25%"
+        maxWidth={isHorizontalLayout ? "35%" : "100%"}
+        minWidth="25%"
+        enable={{
+          top: false,
+          right: isHorizontalLayout,
+          bottom: isVerticalLayout,
+          left: false,
+          topRight: false,
+          bottomRight: false,
+          bottomLeft: false,
+          topLeft: false,
+        }}
+        className="overflow-hidden flex flex-col flex-grow min-h-0 w-full"
+      >
         <Nav
           queriesCount={operations.query.length}
           mutationsCount={operations.mutation.length}
@@ -134,9 +155,9 @@ function App() {
             );
           })}
         </div>
-      </div>
+      </Resizable>
       <div
-        className={`grid grid-rows-2 md:grid-rows-1 md:grid-cols-2 gap-3 h-full w-full ${inspectorBackgroundColor} px-4 py-2 md:col-start-5 md:col-end-13`}
+        className={`grid grid-rows-2 md:grid-rows-1 md:grid-cols-2 gap-3 h-full w-full ${inspectorBackgroundColor} px-4 py-2`}
       >
         <OperationViewer title="Input" jsonData={selectedOperation?.input} />
         <OperationViewer
@@ -248,3 +269,30 @@ const usePortMessageListener = (
     return () => port.onMessage.removeListener(listener);
   }, []);
 };
+
+function getWindowDimensions() {
+  const { innerWidth: width, innerHeight: height } = window;
+  return {
+    width,
+    height,
+  };
+}
+
+function useWindowDimensions() {
+  const [windowDimensions, setWindowDimensions] = useState(
+    getWindowDimensions()
+  );
+
+  useEffect(() => {
+    function handleResize() {
+      setWindowDimensions(getWindowDimensions());
+    }
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  return windowDimensions;
+}
+
+const mdBreakpoint = 768;
