@@ -14,7 +14,8 @@
   },
   "scripts": {
     "build": "preconstruct build",
-    "publish": "npm run build && npm publish --tag next"
+    "prepublish": "npm run build",
+    "publish": "npm publish"
   },
   "keywords": [
     "trpc",
@@ -27,7 +28,7 @@
     "email": "roy.henriquez@gmail.com",
     "url": "https://github.com/rhenriquez28"
   },
-  "license": "ISC",
+  "license": "MIT",
   "devDependencies": {
     "@babel/preset-typescript": "^7.18.6",
     "@preconstruct/cli": "^2.2.1",

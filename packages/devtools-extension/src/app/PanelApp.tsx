@@ -77,17 +77,14 @@ function App() {
       chrome.devtools.panels.create(
         "tRPC",
         "",
-        "src/extension/devtools/panel.html"
+        "/src/extension/devtools/panel.html",
+        () => {
+          port.current.postMessage({
+            source: "devtoolsPanel",
+            message: "devtools-panel-created",
+          } as DevtoolsPanelMessage);
+        }
       );
-    }
-  };
-
-  const messageListener = (message: PortMessage) => {
-    if (message.source === "trpcDevtoolsLink") {
-      handleLinkMessage(message);
-    }
-    if (message.source === "contentScript") {
-      handleContentScriptMessage(message);
     }
   };
 
@@ -99,7 +96,14 @@ function App() {
     } as DevtoolsPanelMessage);
   }, []);
 
-  usePortMessageListener(port.current, messageListener);
+  usePortMessageListener(port.current, (message: PortMessage) => {
+    if (message.source === "trpcDevtoolsLink") {
+      handleLinkMessage(message);
+    }
+    if (message.source === "contentScript") {
+      handleContentScriptMessage(message);
+    }
+  });
 
   const onTabChange = (selectedTab: OperationType) => {
     setSelectedOperation(undefined);

@@ -1,5 +1,12 @@
-import { ContentScriptMessage, DetectorMessage, LinkMessage } from "../types";
+import {
+  ContentScriptMessage,
+  DetectorMessage,
+  DevtoolsPanelMessage,
+  LinkMessage,
+} from "../types";
 import detector from "./detector?script&module";
+
+let isPanelCreated = false;
 
 /*
  * devtoolsLink -> **content-script.js** -> background.js -> dev tools
@@ -11,10 +18,7 @@ window.addEventListener(
       event.data.source === "detector" &&
       event.data.message === "trpc-client-found"
     ) {
-      chrome.runtime.sendMessage({
-        source: "contentScript",
-        message: "create-devtools-panel",
-      } as ContentScriptMessage);
+      createPanel();
       return;
     }
     const isMessageNotFromCurrentTab = event.source !== window;
@@ -47,3 +51,30 @@ if (typeof document === "object" && document instanceof Document) {
     document.documentElement;
   head.insertBefore(script, head.lastChild);
 }
+
+function createPanel() {
+  let interval: number;
+
+  function sendCreatePanelMessage() {
+    if (isPanelCreated) {
+      clearInterval(interval);
+      return;
+    }
+    chrome.runtime.sendMessage({
+      source: "contentScript",
+      message: "create-devtools-panel",
+    } as ContentScriptMessage);
+  }
+
+  interval = window.setInterval(sendCreatePanelMessage, 1000);
+  sendCreatePanelMessage();
+}
+
+/*
+ * agent <- **content-script.js** <- background.js <- dev tools
+ */
+chrome.runtime.onMessage.addListener((message: DevtoolsPanelMessage) => {
+  isPanelCreated =
+    message.source === "devtoolsPanel" &&
+    message.message === "devtools-panel-created";
+});
