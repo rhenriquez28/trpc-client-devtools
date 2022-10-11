@@ -14,8 +14,8 @@
   },
   "scripts": {
     "build": "preconstruct build",
-    "prepublish": "npm run build",
-    "publish": "npm publish"
+    "prepublish-pkg": "npm run build",
+    "publish-pkg": "npm publish"
   },
   "keywords": [
     "trpc",
