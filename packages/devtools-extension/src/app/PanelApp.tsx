@@ -2,12 +2,7 @@ import { Resizable } from "re-resizable";
 import { useEffect, useRef, useState } from "react";
 import { JSONTree } from "react-json-tree";
 import superjson from "superjson";
-import {
-  ContentScriptMessage,
-  DevtoolsPanelMessage,
-  LinkMessage,
-  PortMessage,
-} from "../types";
+import { DevtoolsMessage, LinkMessage, PortMessage } from "../types";
 import Nav from "./components/Nav";
 import "./PanelApp.css";
 import { OperationType } from "./types";
@@ -73,36 +68,17 @@ function App() {
     setOperations({ ...operations });
   };
 
-  const handleContentScriptMessage = (message: ContentScriptMessage) => {
-    if (message.message === "create-devtools-panel") {
-      chrome.devtools.panels.create(
-        "tRPC",
-        "",
-        "/src/extension/devtools/panel.html",
-        () => {
-          port.current.postMessage({
-            source: "devtoolsPanel",
-            message: "devtools-panel-created",
-          } as DevtoolsPanelMessage);
-        }
-      );
-    }
-  };
-
   useEffect(() => {
     port.current.postMessage({
-      source: "devtoolsPanel",
-      message: "set-tab-id",
+      source: "panel",
+      message: "set-port",
       payload: { tabId: chrome.devtools.inspectedWindow.tabId },
-    } as DevtoolsPanelMessage);
+    } as DevtoolsMessage);
   }, []);
 
   usePortMessageListener(port.current, (message: PortMessage) => {
     if (message.source === "trpcDevtoolsLink") {
       handleLinkMessage(message);
-    }
-    if (message.source === "contentScript") {
-      handleContentScriptMessage(message);
     }
   });
 
@@ -111,17 +87,17 @@ function App() {
     setCurrentTab(selectedTab);
   };
 
-  const { width } = useWindowDimensions();
-  const isVerticalLayout = width <= mdBreakpoint;
-  const isHorizontalLayout = width > mdBreakpoint;
+  const { width: windowWidth } = useWindowDimensions();
+  const isVerticalLayout = windowWidth <= mdBreakpoint;
+  const isHorizontalLayout = windowWidth > mdBreakpoint;
 
   return (
-    <div className="text-white bg-neutral-900 h-full flex flex-col md:flex-row overflow-hidden">
+    <div className="text-white bg-neutral-900 w-full h-full flex flex-col md:flex-row overflow-hidden">
       <Resizable
-        maxHeight={isVerticalLayout ? "75%" : "100%"}
+        maxHeight={isVerticalLayout ? "50%" : "100%"}
         minHeight="25%"
         maxWidth={isHorizontalLayout ? "35%" : "100%"}
-        minWidth="25%"
+        minWidth={isHorizontalLayout ? "25%" : "100%"}
         enable={{
           top: false,
           right: isHorizontalLayout,
@@ -132,7 +108,7 @@ function App() {
           bottomLeft: false,
           topLeft: false,
         }}
-        className="overflow-hidden flex flex-col flex-grow min-h-0 w-full"
+        className="overflow-hidden flex flex-col flex-grow min-h-0"
       >
         <Nav
           queriesCount={operations.query.length}
@@ -157,7 +133,7 @@ function App() {
         </div>
       </Resizable>
       <div
-        className={`grid grid-rows-2 md:grid-rows-1 md:grid-cols-2 gap-3 h-full w-full ${inspectorBackgroundColor} px-4 py-2`}
+        className={`grid grid-rows-2 grid-cols-1 md:grid-rows-1 md:grid-cols-2 gap-3 h-full w-full overflow-scroll ${inspectorBackgroundColor} px-4 py-2`}
       >
         <OperationViewer title="Input" jsonData={selectedOperation?.input} />
         <OperationViewer
@@ -235,7 +211,7 @@ const OperationViewer: React.FC<{
   return (
     <div className="w-full grid grid-rows-[max-content_minmax(0,_1fr)] min-h-0 relative">
       <div
-        className={`flex items-center justify-between ${inspectorBackgroundColor}`}
+        className={`flex items-center justify-between ${inspectorBackgroundColor} py-2`}
       >
         <div className="text-lg">{title}</div>
         {elapsedTime !== undefined ? (

@@ -1,15 +1,29 @@
-import { DevtoolsPanelMessage, PortMessage } from "../types";
+import { ContentScriptMessage, DevtoolsMessage, PortMessage } from "../types";
 
-const tabPorts = new Map<number, chrome.runtime.Port>();
+interface TabPorts {
+  devtools?: chrome.runtime.Port;
+  panel?: chrome.runtime.Port;
+}
+const tabPorts = new Map<number, TabPorts>();
+
+const isMessageFromContentScript = (
+  message: PortMessage
+): message is ContentScriptMessage => message.source === "contentScript";
+
 // Receive message from content script and relay to the devTools page for the
 // current tab
 /*
  * agent -> content-script.js -> **background.js** -> dev tools
  */
 chrome.runtime.onMessage.addListener((message: PortMessage, sender) => {
-  const port = sender?.tab?.id && tabPorts.get(sender.tab.id);
-  if (port) {
-    port.postMessage(message);
+  let ports: TabPorts | undefined;
+  if (sender?.tab?.id) {
+    ports = tabPorts.get(sender.tab.id);
+    if (isMessageFromContentScript(message)) {
+      ports?.devtools?.postMessage(message);
+      return;
+    }
+    ports?.panel?.postMessage(message);
   }
 });
 
@@ -18,22 +32,20 @@ chrome.runtime.onMessage.addListener((message: PortMessage, sender) => {
  */
 chrome.runtime.onConnect.addListener((port) => {
   let tabId: number;
-  port.onMessage.addListener((message: DevtoolsPanelMessage) => {
-    if (
-      message.source === "devtoolsPanel" &&
-      message.message === "set-tab-id" &&
-      !tabId
-    ) {
-      // this is a first message from devtools so let's set the tabId-port mapping
-      tabId = message.payload!.tabId;
-      tabPorts.set(tabId, port);
+  port.onMessage.addListener((message: DevtoolsMessage) => {
+    if (message.message === "set-port") {
+      if (!tabId) {
+        tabId = message.payload!.tabId;
+      }
+      if (tabPorts.has(tabId)) {
+        tabPorts.set(tabId, { ...tabPorts.get(tabId), [message.source]: port });
+        return;
+      }
+      tabPorts.set(tabId, { [message.source]: port });
+      return;
     }
 
-    if (
-      message.source === "devtoolsPanel" &&
-      message.message === "devtools-panel-created" &&
-      tabPorts.has(tabId)
-    ) {
+    if (message.source === "devtools" && tabPorts.has(tabId)) {
       chrome.tabs.sendMessage(tabId, message);
     }
   });

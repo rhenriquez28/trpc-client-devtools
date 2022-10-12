@@ -33,7 +33,7 @@ const manifest = defineManifest({
       run_at: "document_start",
     },
   ],
-  devtools_page: "src/extension/devtools/panel.html",
+  devtools_page: "src/extension/devtools/devtools.html",
 });
 
 // https://vitejs.dev/config/

@@ -1,11 +1,12 @@
 import {
   ContentScriptMessage,
   DetectorMessage,
-  DevtoolsPanelMessage,
+  DevtoolsMessage,
   LinkMessage,
 } from "../types";
 import detector from "./detector?script&module";
 
+let isClientPresent = false;
 let isPanelCreated = false;
 
 /*
@@ -14,10 +15,10 @@ let isPanelCreated = false;
 window.addEventListener(
   "message",
   (event: MessageEvent<DetectorMessage | LinkMessage>) => {
-    if (
+    isClientPresent =
       event.data.source === "detector" &&
-      event.data.message === "trpc-client-found"
-    ) {
+      event.data.message === "trpc-client-found";
+    if (isClientPresent) {
       createPanel();
       return;
     }
@@ -58,6 +59,7 @@ function createPanel() {
   function sendCreatePanelMessage() {
     if (isPanelCreated) {
       clearInterval(interval);
+      isPanelCreated = false;
       return;
     }
     chrome.runtime.sendMessage({
@@ -71,10 +73,20 @@ function createPanel() {
 }
 
 /*
- * agent <- **content-script.js** <- background.js <- dev tools
+ * devtoolsLink or detector <- **content-script.js** <- background.js <- dev tools
  */
-chrome.runtime.onMessage.addListener((message: DevtoolsPanelMessage) => {
+chrome.runtime.onMessage.addListener((message: DevtoolsMessage) => {
+  if (
+    message.source === "devtools" &&
+    message.message === "devtools-initialized" &&
+    !isClientPresent
+  ) {
+    // relaying message to detector
+    window.postMessage(message, "*");
+    return;
+  }
+
   isPanelCreated =
-    message.source === "devtoolsPanel" &&
+    message.source === "devtools" &&
     message.message === "devtools-panel-created";
 });

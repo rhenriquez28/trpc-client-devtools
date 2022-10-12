@@ -8,9 +8,9 @@ export interface DetectorMessage {
   message: "trpc-client-found";
 }
 
-export interface DevtoolsPanelMessage {
-  source: "devtoolsPanel";
-  message: "set-tab-id" | "devtools-panel-created";
+export interface DevtoolsMessage {
+  source: "panel" | "devtools";
+  message: "set-port" | "devtools-initialized" | "devtools-panel-created";
   payload?: {
     tabId: number;
   };
