@@ -1,51 +1,86 @@
-import type { Operation, OperationResponse, TRPCLink } from "@trpc/client";
-import type { AnyRouter } from "@trpc/server";
-import superjson from "superjson";
+import superjson from 'superjson';
+import { Operation, OperationContext, OperationResultEnvelope, TRPCClientError, TRPCLink } from '@trpc/client';
+import { AnyRouter } from '@trpc/server';
+import { observable, tap } from '@trpc/server/observable';
+import { TRPCResult } from '@trpc/server/rpc';
+
+
+export type OperationResponse<TRouter extends AnyRouter, TOutput = unknown> =
+  | TRPCResult<TOutput>
+  | TRPCClientError<TRouter>;
 
 type DevtoolsMessage<TRouter extends AnyRouter> = {
   source: "trpcDevtoolsLink";
   payload:
-    | Operation
-    | (Operation & {
-        /**
-         * Request result
-         */
-        result: OperationResponse<TRouter>;
-        elapsedMs: number;
-      });
+  | Operation
+  | (Operation & {
+    /**
+     * Request result
+     */
+    result: OperationResponse<TRouter>;
+    elapsedMs: number;
+  });
 };
 
-export function devtoolsLink<TRouter extends AnyRouter = AnyRouter>(
-  opts: {
-    enabled?: boolean;
-  } = {}
-): TRPCLink<TRouter> {
+export function devtoolsLink<TRouter extends AnyRouter = AnyRouter>(opts: {
+  enabled?: boolean;
+} = {}): TRPCLink<TRouter> {
+
   const { enabled = true } = opts;
 
   if (enabled && typeof window === "object") {
-    (window as any).__TRPC_CLIENT_HOOK__ = true;
+    window.__TRPC_CLIENT_HOOK__ = true;
+  }
+
+  function sendMessageToDevtools(
+    payload: DevtoolsMessage<TRouter>["payload"]
+  ) {
+
+    window.postMessage(
+      { source: "trpcDevtoolsLink", payload: superjson.stringify(payload) },
+      "*"
+    );
+
   }
 
   return () => {
-    function sendMessageToDevtools(
-      payload: DevtoolsMessage<TRouter>["payload"]
-    ) {
-      if (typeof window === "object") {
-        window.postMessage(
-          { source: "trpcDevtoolsLink", payload: superjson.stringify(payload) },
-          "*"
-        );
-      }
-    }
-    return ({ op, next, prev }) => {
-      // ->
-      enabled && sendMessageToDevtools(op);
-      const requestStartTime = Date.now();
-      next(op, (result) => {
-        const elapsedMs = Date.now() - requestStartTime;
-        enabled && sendMessageToDevtools({ ...op, result, elapsedMs });
-        // <-
-        prev(result);
+    return ({ op, next }) => {
+      return observable((observer) => {
+
+        const requestStartTime = Date.now();
+        function logResult(
+          result: OperationResultEnvelope<unknown> | TRPCClientError<TRouter>,
+        ) {
+          const elapsedMs = Date.now() - requestStartTime;
+
+          if (result instanceof TRPCClientError<TRouter>) {
+            sendMessageToDevtools({
+              ...op,
+              elapsedMs,
+              result: result
+            })
+          } else {
+            sendMessageToDevtools({
+              ...op,
+              elapsedMs,
+              result: result.result as unknown as OperationResponse<TRouter>,
+              context: result.context as unknown as OperationContext
+            })
+          }
+
+        }
+        return next(op)
+          .pipe(
+            tap({
+              next(result) {
+                logResult(result);
+              },
+              error(result) {
+                logResult(result);
+              },
+            }),
+          )
+          .subscribe(observer);
       });
     };
   };
